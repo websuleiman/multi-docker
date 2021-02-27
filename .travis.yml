@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t websuleiman/react-test -f ./client/Dockerfile.dev ./client
+
+
+script:
+  - docker run websuleiman/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t websuleiman/multi-client ./client
+  - docker build -t websuleiman/multi-nginx ./nginx
+  - docker build -t websuleiman/multi-server ./server
+  - docker build -t websuleiman/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take all those images and push them to dkcer hub
+  - docker push websuleiman/multi-client
+  - docker push websuleiman/multi-nginx
+  - docker push websuleiman/multi-server
+  - docker push websuleiman/multi-worker
+   
